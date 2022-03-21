@@ -1,7 +1,9 @@
 package ru.netcracker.bankmodel.bankcomponents;
 
 public class Cashbox {
-    public static boolean withdraw(float moneyAmt) {
+    private static float moneyAmt = 1000;
+
+    public static synchronized boolean withdraw(float moneyAmt) {
         if (moneyAmt < Cashbox.moneyAmt) {
             Cashbox.moneyAmt -= moneyAmt;
             return true;
@@ -10,13 +12,11 @@ public class Cashbox {
         }
     }
 
-    public static void deposit(float moneyAmt) {
+    public static synchronized void deposit(float moneyAmt) {
         Cashbox.moneyAmt += moneyAmt;
     }
 
-    public static float getBalance() {
+    public static synchronized float getBalance() {
         return moneyAmt;
     }
-
-    private static float moneyAmt;
 }

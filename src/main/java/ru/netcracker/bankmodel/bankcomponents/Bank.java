@@ -1,33 +1,40 @@
 package ru.netcracker.bankmodel.bankcomponents;
 
 import ru.netcracker.bankmodel.generators.ClientGenerator;
-import ru.netcracker.bankmodel.listeners.OnClientArrivedListener;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Bank {
     public static final int TELLERS_AMT = 4;
-//    private final Queue<Client> clients = new ArrayDeque<>();
     private final List<Teller> tellers = new ArrayList<>();
 
-//    public Queue<Client> getClients() {
-//        return clients;
-//    }
-
     public Bank() {
+        System.out.println("[ " + LocalDateTime.now() + " ] Bank opened!!! Waiting for customers...");
+        //adding tellers to bank
         for (int i = 0; i < TELLERS_AMT; i++) {
-            tellers.add(new Teller());
+            tellers.add(new Teller(i + 1));
         }
-        ClientGenerator clientGenerator = new ClientGenerator(this);
+        //creating threads for tellers
+        for (Teller teller : tellers) {
+            Thread thread = new Thread(teller);
+            thread.start();
+        }
+
+        ClientGenerator clientGenerator = new ClientGenerator();
         clientGenerator.setOnClientArrivedListener(client -> {
-            System.out.println("Client " + client.getId() + " is arrived for "
-                    + (client.isWithdrawalOpType() ? "withdraw " : "deposit ") + "money");
+            System.out.println((client.isWithdrawalOpType() ? "\033[38;5;208m" : "\u001B[32m")
+                    + "[ " + LocalDateTime.now()
+                    + " ] Client " + client.getId() + " is arrived to "
+                    + (client.isWithdrawalOpType() ? "withdraw " : "deposit ")
+                    + client.getMoneyAmt() + "$\u001B[0m");
+            //choose the least loaded teller and notifying his thread
             tellers.stream()
                     .min(Comparator.comparingInt(t -> t.getServedClients().size()))
                     .ifPresent(
-                            teller -> teller
-                                    .getServedClients()
-                                    .add(client)
+                            teller -> {
+                                teller.add(client);
+                            }
                     );
         });
         Thread t = new Thread(clientGenerator);
@@ -35,5 +42,6 @@ public class Bank {
     }
 
     public static void main(String[] args) {
+        Bank b = new Bank();
     }
 }
